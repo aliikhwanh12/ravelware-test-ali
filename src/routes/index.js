@@ -1,0 +1,17 @@
+const express = require("express");
+const router = express.Router();
+const { latestData, monthlyEnergy } = require("../controllers/energyController");
+
+router.get("/latest", latestData);
+router.get("/monthly-energy", monthlyEnergy);
+
+router.get("/", (req, res) => {
+  res.send("Routes working");
+});
+router.get("/realtime", (req, res) => {
+  res.json({
+    message: "Realtime dashboard endpoint",
+  });
+});
+
+module.exports = router;
