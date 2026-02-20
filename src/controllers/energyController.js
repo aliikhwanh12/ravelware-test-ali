@@ -1,4 +1,4 @@
-const { getLatestData } = require("../services/energyServices");
+const { getLatestData, getYearlyEnergy } = require("../services/energyServices");
 
 async function latestData(req, res) {
   try {
@@ -49,36 +49,39 @@ async function latestData(req, res) {
   }
 }
 
-async function monthlyEnergy(req, res) {
+async function yearlyEnergy(req, res) {
   try {
     const panel = req.query.panel || "PANEL_LANTAI_1";
-    const year = req.query.year || "2023";
-    const month = req.query.month || "05";
+    const year = req.query.year || "2026";
 
-    const rows = await getMonthlyEnergy(panel, year, month);
+    const rows = await getYearlyEnergy(panel, year);
 
-    const date = [];
+    const month = [];
     const energy = [];
     const cost = [];
 
-    const tariff = 1500; // contoh tarif listrik / kWh
+    const tariff = 1500;
 
     rows.forEach((row) => {
-      const d = new Date(row.day);
+      const m = new Date(row.month).getMonth() + 1;
 
-      date.push(d.getDate());
-      energy.push(Number(row.energy || 0));
-      cost.push(Number(row.energy || 0) * tariff);
+      const first = Number(row.first_kwh || 0);
+      const last = Number(row.last_kwh || 0);
+
+      const usage = last - first;
+
+      month.push(m);
+      energy.push(usage);
+      cost.push(usage * tariff);
     });
 
     res.json({
       status: "OK",
-      message: "Success",
+      message: "",
       data: {
         pmCode: panel,
         year,
         month,
-        date,
         energy,
         cost,
       },
@@ -89,8 +92,9 @@ async function monthlyEnergy(req, res) {
     res.status(500).json({
       status: "ERROR",
       message: err.message,
+      data: null,
     });
   }
 }
 
-module.exports = { latestData, monthlyEnergy };
+module.exports = { latestData, yearlyEnergy };

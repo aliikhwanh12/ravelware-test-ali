@@ -1,37 +1,51 @@
-const { client, database } = require("../config/influx");
+const client = require("../config/influx");
 
 async function getLatestData(panel) {
   const query = `
-    SELECT *
+    SELECT
+      MIN(energy_kwh) as first_kwh,
+      MAX(energy_kwh) as last_kwh
     FROM power_meter
     WHERE panel = '${panel}'
-    ORDER BY time DESC
-    LIMIT 1
+      AND time >= DATE_TRUNC('day', NOW())
   `;
 
-  const rows = await client.query(query, database);
+  const rowsIterator = await client.query(query);
 
-  return rows;
+  const results = [];
+
+  for await (const row of rowsIterator) {
+    results.push(row);
+  }
+
+  return results;
 }
 
-async function getMonthlyEnergy(panel, year, month) {
-  const start = `${year}-${month}-01`;
-  const end = `${year}-${month}-31`;
+async function getYearlyEnergy(panel, year) {
+  const start = `${year}-01-01`;
+  const end = `${year}-12-31`;
 
   const query = `
     SELECT
-      DATE_TRUNC('day', time) as day,
-      SUM(energy_kwh) as energy
+      DATE_TRUNC('month', time) AS month,
+      MIN(energy_kwh) AS first_kwh,
+      MAX(energy_kwh) AS last_kwh
     FROM power_meter
     WHERE panel = '${panel}'
       AND time BETWEEN '${start}' AND '${end}'
-    GROUP BY day
-    ORDER BY day
+    GROUP BY month
+    ORDER BY month
   `;
 
-  const rows = await client.query(query, database);
+  const rowsIterator = await client.query(query);
 
-  return rows;
+  const results = [];
+
+  for await (const row of rowsIterator) {
+    results.push(row);
+  }
+
+  return results;
 }
 
-module.exports = { getLatestData, getMonthlyEnergy };
+module.exports = { getLatestData, getYearlyEnergy };

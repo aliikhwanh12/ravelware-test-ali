@@ -1,9 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { latestData, monthlyEnergy } = require("../controllers/energyController");
+const { latestData, yearlyEnergy } = require("../controllers/energyController");
 
 router.get("/latest", latestData);
-router.get("/monthly-energy", monthlyEnergy);
+router.get("/yearly-energy", yearlyEnergy);
 
 router.get("/", (req, res) => {
   res.send("Routes working");
