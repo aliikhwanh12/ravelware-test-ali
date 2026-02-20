@@ -1,24 +1,46 @@
 const client = require("../config/influx");
 
 async function getLatestData(panel) {
-  const query = `
+  // =========================
+  // 1. Latest Data
+  // =========================
+  const latestQuery = `
+    SELECT *
+    FROM power_meter
+    WHERE panel = '${panel}'
+    ORDER BY time DESC
+    LIMIT 1
+  `;
+
+  const latestIterator = await client.query(latestQuery);
+
+  let latest = null;
+
+  for await (const row of latestIterator) {
+    latest = row;
+  }
+
+  // =========================
+  // 2. Today Energy
+  // =========================
+  const todayQuery = `
     SELECT
-      MIN(energy_kwh) as first_kwh,
-      MAX(energy_kwh) as last_kwh
+      MIN(energy_kwh) AS first_kwh,
+      MAX(energy_kwh) AS last_kwh
     FROM power_meter
     WHERE panel = '${panel}'
       AND time >= DATE_TRUNC('day', NOW())
   `;
 
-  const rowsIterator = await client.query(query);
+  const todayIterator = await client.query(todayQuery);
 
-  const results = [];
+  let today = null;
 
-  for await (const row of rowsIterator) {
-    results.push(row);
+  for await (const row of todayIterator) {
+    today = row;
   }
 
-  return results;
+  return { latest, today };
 }
 
 async function getYearlyEnergy(panel, year) {

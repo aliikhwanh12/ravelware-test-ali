@@ -4,37 +4,45 @@ async function latestData(req, res) {
   try {
     const panel = req.query.panel || "PANEL_LANTAI_1";
 
-    const rows = await getLatestData(panel);
+    const { latest, today } = await getLatestData(panel);
+    
+    // console.log("Latest data rows:", rows);
 
-    if (!rows || rows.length === 0) {
+    if (!latest) {
       return res.json({
         status: "OK",
         message: "No data",
         data: null,
       });
     }
-
-    const row = rows[0];
-
+    const row = latest;
+    console.log("Latest data row:", row);
     const tariff = 1500; // tarif listrik
 
     const voltage = Number(row.voltage_avg || 0);
 
     const current = Number(row.current_avg || 0);
-    const kwh = Number(row.energy_kwh || 0);
     const kw = Number(row.power_kw || 0);
-    const cost = kwh * tariff;
-
+    const lastTime = new Date(row.time);
+    const now = new Date();
+    const diffMs = now - lastTime;
+    const diffMinutes = diffMs / (1000 * 60);
+    const panelStatus = diffMinutes > 5 ? "OFFLINE" : "ONLINE";
+    const first = Number(today?.first_kwh || 0);
+    const last = Number(today?.last_kwh || 0);
+    const todayUsage = last - first;
+    const cost = todayUsage * tariff;
     res.json({
       status: "OK",
       message: "",
       data: {
         pmCode: panel,
         time: row.time,
+        status: panelStatus,
         v: voltage,
         i: current,
         kw: kw,
-        kwh: kwh,
+        kwh: todayUsage,
         cost: cost,
       },
     });
