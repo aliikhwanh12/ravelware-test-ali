@@ -40,12 +40,19 @@ npm install
 Buat file `.env`
 
 ```
-MQTT_URL=your_mqtt_url
+MQTT_HOST=your_mqtt_host
 INFLUX_HOST=your_host
 INFLUX_TOKEN=your_token
-INFLUX_DATABASE=your_bucket
+INFLUX_BUCKET=your_bucket
 ```
 
+## 4. Run Application
+
+Development:
+
+```
+npm run dev
+```
 # 📁 Project Structure
 
 ```

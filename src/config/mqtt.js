@@ -1,6 +1,6 @@
 const mqtt = require("mqtt");
 const { saveEnergy } = require("../services/influxServices");
-const client = mqtt.connect("mqtt://broker.hivemq.com");
+const client = mqtt.connect(process.env.MQTT_HOST);
 
 client.on("connect", () => {
   console.log("MQTT Connected");
