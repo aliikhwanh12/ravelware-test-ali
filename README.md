@@ -26,7 +26,7 @@ Project ini menerima data dari power meter melalui MQTT broker, menyimpannya ke 
 
 ```
 git clone <repo-url>
-cd energy-monitoring
+cd ravelware-test-ali
 ```
 
 ## 2. Install Dependencies
